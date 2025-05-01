@@ -2,6 +2,7 @@ import Link from "next/link";
 import {BaseUrl} from "@/shared/routes/routes";
 import {useRouter} from "next/router";
 import {SessionType} from "@/pages/_app";
+import {trpc} from "@/shared/api";
 
 
 interface EventDetailProps {
@@ -23,10 +24,24 @@ export const EventDetail = ({
   session,
   authorId
 }: EventDetailProps) => {
-  const { asPath } = useRouter();
+  const { asPath, query, push } = useRouter();
 
+  const { mutate: deleteEvent } = trpc.event.delete.useMutation();
+
+  const handleDelete = () => {
+    deleteEvent(
+        { eventId: Number(query.id) },
+        {
+          onSuccess: () => {
+            // Действия после успешного удаления
+            push(BaseUrl.HOME);
+          },
+        }
+    );
+  };
 // Скрываем кнопку если это не автор
   const isEditButtonShow = session && session.user.id === authorId ;
+
 
   return (
     <div>
@@ -35,11 +50,16 @@ export const EventDetail = ({
           Информация о событии
         </h3>
         {isEditButtonShow &&
-            <Link href={`${asPath}${BaseUrl.EDIT_EVENT}`}>
-              <button className="bg-blue-500 w-[150px] h-[35px] text-white rounded">
-                Редактировать
+            <div className="flex gap-5">
+              <Link href={`${asPath}${BaseUrl.EDIT_EVENT}`}>
+                <button className="bg-blue-500 w-[150px] h-[35px] text-white rounded">
+                  Редактировать
+                </button>
+              </Link>
+              <button onClick={handleDelete} className="bg-red-500 w-[150px] h-[35px] text-white rounded">
+                Удалить
               </button>
-            </Link>
+            </div>
         }
 
       </div>

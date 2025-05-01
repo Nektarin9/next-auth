@@ -2,8 +2,7 @@ import { CreateEventSchema, JoinEventSchema } from "@/shared/api";
 import { prisma } from "../db";
 import { isAuth, procedure, router } from "../trpc";
 import { z } from "zod";
-import {TRPCError} from "@trpc/server";
-import {omit} from "next/dist/shared/lib/router/utils/omit";
+import {isAuthorEvent} from "@/server/middleware/isAuthorEvent/isAuthorEvent";
 
 export const eventRouter = router({
   findMany: procedure.query(async ({ ctx: { user } }) => {
@@ -56,27 +55,48 @@ export const eventRouter = router({
         },
       });
     }),
+    delete: procedure
+        .input(
+            z.object({
+                eventId: z.number().int(),
+            })
+        )
+        .use(isAuth)
+        .use(isAuthorEvent)
+        .mutation(async ({ input }) => {
+            return prisma.$transaction([
+                prisma.participation.deleteMany({
+                    where: {
+                        eventId: input.eventId,
+                    },
+                }),
+                // Удаляем взаимосвязи
+                prisma.event.delete({
+                    where: {
+                        id: input.eventId,
+                    },
+                }),
+            ]);
+        }),
   update: procedure
       .input(
           z.object({
             eventId: z.number().int(),
-            authorId: z.number().int(),
-            ...CreateEventSchema.shape // Включаем все поля из CreateEventSchema
+            title: z.string().min(1),
+            description: z.string().optional(),
+            date: z.date()
           })
       )
-      .use(isAuth)
-      .mutation(async ({ input, ctx: { user } }) => {
-        // Проверяем что пользователь - автор события
-        if (input.authorId !== user.id) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Вы не можете редактировать это событие'
-          });
-        }
+      .use(isAuth) // Сначала проверяем авторизацию
+      .use(isAuthorEvent) // Затем проверяем авторство
+      .mutation(async ({ ctx, input }) => {
+        // ctx содержит user и eventId
         return prisma.event.update({
-          where: { id: input.eventId },
+          where: { id: ctx.eventId },
           data: {
-            ...omit(input, ['eventId', 'authorId']),
+            title: input.title,
+            description: input.description,
+            date: input.date,
             updatedAt: new Date()
           }
         });
@@ -107,4 +127,5 @@ export const eventRouter = router({
           },
         });
       }),
+
 });

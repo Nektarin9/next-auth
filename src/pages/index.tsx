@@ -12,6 +12,7 @@ export default function Home(props: AppProps) {
         <li key={event.id} className="mb-6">
           <EventCard
             {...event}
+            isSession={Boolean(session)}
             action={<JoinEventButton isSession={Boolean(session)} eventId={event.id} onSuccess={refetch} isLeave={event.isJoined} />}
           />
         </li>

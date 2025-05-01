@@ -34,7 +34,6 @@ export default function EditEvent(props: AppProps) {
     const handleSubmit = (formData: CreateEventSchema) => {
         if (data) {
             updateEvent({
-                authorId: data.authorId,
                 eventId: Number(router.query.id),
                 ...formData
             })

@@ -9,6 +9,7 @@ type EventCardProps = {
   description: string | null;
   date: Date;
   action: ReactNode;
+  isSession?: boolean;
 };
 
 export const EventCard = ({
@@ -17,6 +18,7 @@ export const EventCard = ({
   description,
   date,
   action,
+  isSession
 }: EventCardProps) => {
   return (
     <div className="flex font-sans rounded-lg shadow-xl overflow-hidden">
@@ -44,7 +46,7 @@ export const EventCard = ({
           <div className="flex-auto flex space-x-4">
             {action}
             <Link
-              href={`${BaseUrl.EVENTS}/${id}`}
+              href={isSession ? `${BaseUrl.EVENTS}/${id}` : BaseUrl.AUTH}
               className="h-10 px-6 font-semibold rounded-md border border-slate-200 text-slate-900 align-middle leading-10"
             >
               Подробнее

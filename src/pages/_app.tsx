@@ -35,7 +35,7 @@ function App({ Component, pageProps }: AppProps) {
                           <p>{pageProps.session.user.name}</p>
                           <button
                               onClick={() => signOut()}
-                              className="bg-red-500 text-white px-4 py-2 rounded"
+                              className={styles.btnExit}
                           >
                               Выйти
                           </button>
@@ -44,7 +44,7 @@ function App({ Component, pageProps }: AppProps) {
                           </Link>
                       </div>
                       : <Link href={BaseUrl.AUTH}>
-                          <button>Войти</button>
+                          <button>Войти / Зарегистрироваться</button>
                       </Link>
                   }
 
